@@ -1,0 +1,25 @@
+services:
+  app:
+    build: .
+    container_name: cognichat-app
+    ports:
+      - "8000:8000"          # Localhost:8000 -> app:8000 (for debugging, not used by app)
+    env_file: .env           #<- load the secrets from .env
+    environment:
+      - CHROMA_HOST=chroma   #<- the hostname of the chroma container, as seen from this container
+      - CHROMA_PORT=8000     # <- the PORT exposed by the chroma container
+    depends_on:
+      - chroma
+    restart: unless-stopped  # restart the app if it crashes, but not if you stop it manually
+
+  chroma:
+    image: chromadb/chroma:0.6.3
+    container_name: cognichat-chroma
+    ports:
+      - "8001:8000"          # Localhost:8001 -> chroma:8000 (for debugging, not used by app)
+    volumes:
+      - chroma_data:/chroma/chroma   # persistent storage for the vector DB
+    restart: unless-stopped
+
+volumes:
+  chroma_data:
